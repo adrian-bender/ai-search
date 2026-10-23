@@ -102,6 +102,8 @@ namespace Search.Console
 
         static void Main(string[] args)
         {
+            System.Console.OutputEncoding = System.Text.Encoding.UTF8;
+
             #region Solve Water Problem
             WaterState initialWaterState;
             initialWaterState = new WaterState(0, 0);
