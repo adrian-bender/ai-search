@@ -20,6 +20,10 @@ Planned and implemented algorithms may include:
 - Greedy Best-First Search
 - A* Search
 
+## For students
+
+New here? Start with the [student guide](docs/STUDENT_GUIDE.md): experiments to confirm the theory, a tour of the code, and project ideas to build on top (graph search, A*, new problems, bug hunt).
+
 ## Repository Structure
 
 - `csharp/` — C# implementation.

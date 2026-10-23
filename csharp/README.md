@@ -2,6 +2,8 @@
 
 AI search framework with sample problems, targeting .NET 8.
 
+> Learning from this repo? See the [student guide](../docs/STUDENT_GUIDE.md).
+
 ## Projects
 
 | Project | Purpose |
