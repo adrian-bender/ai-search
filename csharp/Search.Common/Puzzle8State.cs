@@ -2,7 +2,7 @@
 using System.Linq;
 using Search.Backend;
 
-namespace Search.Console.ProblemState
+namespace Search.Common
 {
     public class Puzzle8State : State
     {
@@ -39,13 +39,12 @@ namespace Search.Console.ProblemState
         #region Public Methods
         public override int GetDepth()
         {
-            return (((string.IsNullOrEmpty(_path)) || (_path.IndexOf("|") < 0)) ? 0 : _path.Split('|').Count());
+            return (string.IsNullOrEmpty(_path) ? 0 : _path.Count(c => c == '|'));
         }
 
         public override int GetHeuristic()
         {
             int output = 0;
-
             if (_matrix[0, 0] != 1) output++;
             if (_matrix[0, 1] != 2) output++;
             if (_matrix[0, 2] != 3) output++;
@@ -54,7 +53,6 @@ namespace Search.Console.ProblemState
             if (_matrix[1, 2] != 6) output++;
             if (_matrix[2, 0] != 7) output++;
             if (_matrix[2, 1] != 8) output++;
-
             return (output);
         }
 
@@ -63,15 +61,12 @@ namespace Search.Console.ProblemState
             return ((string.IsNullOrEmpty(_path)) ? string.Empty : (_path.Replace("|", "\n")));
         }
 
-        public override List<State> GetSucessors()
+        public override List<State> GetSuccessors()
         {
             int row, col;
             List<State> output;
-
             output = new List<State>();
-
             GetBlankPosition (out row, out col);
-
             // 1) Mueve blanco arriba
             if (row > 0)
             {
@@ -81,7 +76,6 @@ namespace Search.Console.ProblemState
                 matrix[row - 1, col] = 0;
                 output.Add(new Puzzle8State(matrix, _path + "|Mueve blanco arriba."));
             }
-
             // 2) Mueve blanco abajo
             if (row < 2)
             {
@@ -91,7 +85,6 @@ namespace Search.Console.ProblemState
                 matrix[row + 1, col] = 0;
                 output.Add(new Puzzle8State(matrix, _path + "|Mueve blanco abajo."));
             }
-
             // 3) Mueve blanco a la derecha
             if (col < 2)
             {
@@ -101,7 +94,6 @@ namespace Search.Console.ProblemState
                 matrix[row, col + 1] = 0;
                 output.Add(new Puzzle8State(matrix, _path + "|Mueve blanco a la derecha."));
             }
-
             // 4) Mueve blanco a la izquierda
             if (col > 0)
             {
@@ -111,7 +103,6 @@ namespace Search.Console.ProblemState
                 matrix[row, col - 1] = 0;
                 output.Add(new Puzzle8State(matrix, _path + "|Mueve blanco a la izquierda."));
             }
-
             return (output);
         }
 
@@ -125,9 +116,7 @@ namespace Search.Console.ProblemState
         public override string ToString()
         {
             string output;
-
             output = string.Empty;
-
             for (int row = 0; row < _matrix.GetLength(0); row++)
             {
                 for (int col = 0; col < _matrix.GetLength(1); col++)
@@ -138,7 +127,6 @@ namespace Search.Console.ProblemState
                 }
                 output += "\n";
             }
-
             return (output);
         }
         #endregion

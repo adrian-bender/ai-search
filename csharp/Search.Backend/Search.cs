@@ -28,27 +28,22 @@ namespace Search.Backend
             return (_solutionPath);
         }
 
-        public bool GetSolutionPathFromNodes(List<State> nodes)
+        // Busca el primer estado final de la colección y, si lo encuentra, guarda su camino
+        protected bool TryFindSolution(IEnumerable<State> states)
         {
-            bool output;
-
-            output = false;
-
-            for (int i = 0; i < nodes.Count; i++)
+            foreach (State state in states)
             {
-                if (nodes[i].IsFinal())
+                if (state.IsFinal())
                 {
-                    output = true;
-                    _solutionPath = nodes[i].GetPath();
-                    _finalState = nodes[i].ToString();
-                    break;
+                    _solutionPath = state.GetPath();
+                    _finalState = state.ToString();
+                    return (true);
                 }
             }
-
-            return (output);
+            return (false);
         }
 
-        public void initializeSearch()
+        public void InitializeSearch()
         {
             _solutionPath = string.Empty;
             _finalState = string.Empty;

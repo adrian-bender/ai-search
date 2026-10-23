@@ -2,7 +2,7 @@
 using System.Linq;
 using Search.Backend;
 
-namespace Search.Console.ProblemState
+namespace Search.Common
 {
     public class BoatState : State
     {
@@ -37,7 +37,7 @@ namespace Search.Console.ProblemState
         #region Public Methods
         public override int GetDepth()
         {
-            return (((string.IsNullOrEmpty(_path)) || (_path.IndexOf("|") < 0)) ? 0 : _path.Split('|').Count());
+            return (string.IsNullOrEmpty(_path) ? 0 : _path.Count(c => c == '|'));
         }
 
         public override int GetHeuristic()
@@ -50,21 +50,18 @@ namespace Search.Console.ProblemState
             return ((string.IsNullOrEmpty(_path)) ? string.Empty : (_path.Replace("|", "\n")));
         }
 
-        public override List<State> GetSucessors()
+        public override List<State> GetSuccessors()
         {
             List<State> output;
-
             output = new List<State>();
-
             /* 
              1) Pasa solo cuando:
              * No quedan el lobo y la cabra del otro lado
              * No quedan la cabra y el repollo del otro lado
             */
-            if ((!(_farmer == _wolf == _goat)) &&
-                (!(_farmer == _goat == _cabbage)))
+            if ((!((_farmer == _wolf) && (_wolf == _goat))) &&
+                (!((_farmer == _goat) && (_goat == _cabbage))))
                 output.Add(new BoatState(!_farmer, _wolf, _goat, _cabbage, _path + "|" + ((_farmer) ? "Vuelve solo." : "Pasa solo.")));
-
             /* 
              2) Pasa con el lobo cuando:
              * Están en el mismo lado
@@ -73,14 +70,12 @@ namespace Search.Console.ProblemState
             if ((_farmer == _wolf) &&
                 (!(_goat == _cabbage)))
                 output.Add(new BoatState(!_farmer, !_wolf, _goat, _cabbage, _path + "|" + ((_farmer) ? "Vuelve con el lobo." : "Pasa con el lobo.")));
-
             /* 
              3) Pasa con la cabra cuando:
              * Están en el mismo lado
             */
             if ((_farmer == _goat))
                 output.Add(new BoatState(!_farmer, _wolf, !_goat, _cabbage, _path + "|" + ((_farmer) ? "Vuelve con la cabra." : "Pasa con la cabra.")));
-
             /* 
              4) Pasa el repollo cuando:
              * Están en el mismo lado
@@ -89,13 +84,23 @@ namespace Search.Console.ProblemState
             if ((_farmer == _cabbage) &&
                 (!(_wolf == _goat)))
                 output.Add(new BoatState(!_farmer, _wolf, _goat, !_cabbage, _path + "|" + ((_farmer) ? "Vuelve con el repollo." : "Pasa con el repollo.")));
-
             return (output);
         }
 
         public override bool IsFinal()
         {
             return (_farmer && _wolf && _goat && _cabbage);
+        }
+
+        public override string ToString()
+        {
+            string[] names = { "Granjero", "Lobo", "Cabra", "Repollo" };
+            bool[] sides = { _farmer, _wolf, _goat, _cabbage };
+            List<string> start = new List<string>();
+            List<string> end = new List<string>();
+            for (int i = 0; i < names.Length; i++)
+                (sides[i] ? end : start).Add(names[i]);
+            return (string.Format("Orilla inicial: {0}\nOrilla final: {1}", string.Join(", ", start), string.Join(", ", end)));
         }
         #endregion
     }

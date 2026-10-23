@@ -7,7 +7,6 @@ namespace Search.Backend
         #region Constructors
         public UninformedSearch() : base()
         {
-
         }
         #endregion
 
@@ -15,108 +14,75 @@ namespace Search.Backend
         public bool SearchBFS(State initialState)
         {
             bool output;
-            List<State> nodes;
-
-            output = false;
-
-            initializeSearch();
-
-            nodes = new List<State>();
-
-        // Agrega raíz a la lista
-            nodes.Add(initialState);
-
-            while ((nodes.Count > 0) && (!GetSolutionPathFromNodes (nodes))) {
+            Queue<State> nodes;
+            InitializeSearch();
+            nodes = new Queue<State>();
+        // Agrega raíz a la cola
+            nodes.Enqueue(initialState);
+            output = TryFindSolution(nodes);
+            while ((nodes.Count > 0) && (!output))
+            {
                 State current;
-
-                current = nodes[0];
-
+                List<State> successors;
             // Remueve el primer elemento
-                nodes.RemoveAt(0);
-
-            // Agrega sucesores al final de la lista
-                nodes.AddRange(current.GetSucessors());
-
-                current = null;
+                current = nodes.Dequeue();
+                successors = current.GetSuccessors();
+                output = TryFindSolution(successors);
+            // Agrega sucesores al final de la cola
+                foreach (State successor in successors)
+                    nodes.Enqueue(successor);
             }
-
-            output = GetSolutionPathFromNodes(nodes);
-
-            nodes = null;
-
             return (output);
         }
 
         public bool SearchDFS(State initialState)
         {
             bool output;
-            List<State> nodes;
-
-            output = false;
-
-            initializeSearch();
-
-            nodes = new List<State>();
-
-            // Agrega raíz a la lista
-            nodes.Add(initialState);
-
-            while ((nodes.Count > 0) && (!GetSolutionPathFromNodes(nodes)))
+            Stack<State> nodes;
+            InitializeSearch();
+            nodes = new Stack<State>();
+            // Agrega raíz a la pila
+            nodes.Push(initialState);
+            output = TryFindSolution(nodes);
+            while ((nodes.Count > 0) && (!output))
             {
                 State current;
-
-                current = nodes[0];
-
-                // Remueve el primer elemento
-                nodes.RemoveAt(0);
-
-                // Agrega sucesores al inicio de la lista
-                nodes.InsertRange(0, current.GetSucessors());
-
-                current = null;
+                List<State> successors;
+                // Remueve el elemento del tope
+                current = nodes.Pop();
+                successors = current.GetSuccessors();
+                output = TryFindSolution(successors);
+                // Agrega sucesores al tope de la pila (en orden inverso para expandir primero el primer sucesor)
+                for (int i = successors.Count - 1; i >= 0; i--)
+                    nodes.Push(successors[i]);
             }
-
-            output = GetSolutionPathFromNodes(nodes);
-
-            nodes = null;
-
             return (output);
         }
 
         public bool SearchDLS(State initialState, int maxDepth)
         {
             bool output;
-            List<State> nodes;
-
-            output = false;
-
-            initializeSearch();
-
-            nodes = new List<State>();
-
-            // Agrega raíz a la lista
-            nodes.Add(initialState);
-
-            while ((nodes.Count > 0) && (!GetSolutionPathFromNodes(nodes)))
+            Stack<State> nodes;
+            InitializeSearch();
+            nodes = new Stack<State>();
+            // Agrega raíz a la pila
+            nodes.Push(initialState);
+            output = TryFindSolution(nodes);
+            while ((nodes.Count > 0) && (!output))
             {
                 State current;
-
-                current = nodes[0];
-
-                // Remueve el primer elemento
-                nodes.RemoveAt(0);
-
+                // Remueve el elemento del tope
+                current = nodes.Pop();
                 if (current.GetDepth () < maxDepth)
-                // Agrega sucesores al inicio de la lista
-                    nodes.InsertRange(0, current.GetSucessors());
-
-                current = null;
+                {
+                    List<State> successors;
+                    successors = current.GetSuccessors();
+                    output = TryFindSolution(successors);
+                    // Agrega sucesores al tope de la pila (en orden inverso para expandir primero el primer sucesor)
+                    for (int i = successors.Count - 1; i >= 0; i--)
+                        nodes.Push(successors[i]);
+                }
             }
-
-            output = GetSolutionPathFromNodes(nodes);
-
-            nodes = null;
-
             return (output);
         }
 
@@ -124,15 +90,12 @@ namespace Search.Backend
         {
             bool output;
             int maxDepth;
-
             output = false;
             maxDepth = 0;
-
             while (!output) {
                 output = SearchDLS(initialState, maxDepth);
                 maxDepth++;
             }
-
             return (output);
         }
         #endregion

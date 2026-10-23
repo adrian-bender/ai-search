@@ -1,207 +1,121 @@
-﻿using Search.Backend;
-using Search.Console.ProblemState;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Search.Backend;
+using Search.Common;
 
 namespace Search.Console
 {
     class Program
     {
         #region Solve Methods
+        static void ShowResult(string algorithm, bool hasSolution, string solutionPath)
+        {
+            if (hasSolution)
+                System.Console.WriteLine(string.Format("La solución al problema encontrada por {0} es:\n{1}", algorithm, solutionPath));
+            else
+                System.Console.WriteLine(string.Format("{0} no encontró solución al problema.", algorithm));
+        }
+
         static void SolveBFS(State initialState)
         {
-            bool hasSolution;
-            UninformedSearch uninformedSearch;
-
-            uninformedSearch = new UninformedSearch();
-
-            hasSolution = uninformedSearch.SearchBFS(initialState);
-
-            if (hasSolution)
-                System.Console.WriteLine(string.Format("La solución al problema encontrada por BFS es:\n{0}", uninformedSearch.GetSolutionPath()));
-            else
-                System.Console.WriteLine("BFS no encontró solución al problema.");
-
-            System.Console.ReadLine();
-
-            uninformedSearch = null;
+            UninformedSearch search = new UninformedSearch();
+            ShowResult("BFS", search.SearchBFS(initialState), search.GetSolutionPath());
         }
 
         static void SolveDFS(State initialState)
         {
-            bool hasSolution;
-            UninformedSearch uninformedSearch;
-
-            uninformedSearch = new UninformedSearch();
-
-            hasSolution = uninformedSearch.SearchDFS(initialState);
-
-            if (hasSolution)
-                System.Console.WriteLine(string.Format("La solución al problema encontrada por DFS es:\n{0}", uninformedSearch.GetSolutionPath()));
-            else
-                System.Console.WriteLine("DFS no encontró solución al problema.");
-            
-            System.Console.ReadLine();
-
-            uninformedSearch = null;
+            UninformedSearch search = new UninformedSearch();
+            ShowResult("DFS", search.SearchDFS(initialState), search.GetSolutionPath());
         }
 
         static void SolveDLS(State initialState, int maxDepth)
         {
-            bool hasSolution;
-            UninformedSearch uninformedSearch;
-
-            uninformedSearch = new UninformedSearch();
-
-            hasSolution = uninformedSearch.SearchDLS (initialState, maxDepth);
-
-            if (hasSolution)
-                System.Console.WriteLine(string.Format("La solución al problema encontrada por DLS con tope de profundidad {1} es:\n{0}", uninformedSearch.GetSolutionPath(), maxDepth));
-            else
-                System.Console.WriteLine(string.Format("DLS con tope de profundidad {0} no encontró solución al problema.", maxDepth));
-
-            System.Console.ReadLine();
-
-            uninformedSearch = null;
+            UninformedSearch search = new UninformedSearch();
+            ShowResult(string.Format("DLS con tope de profundidad {0}", maxDepth), search.SearchDLS(initialState, maxDepth), search.GetSolutionPath());
         }
 
         static void SolveIDS(State initialState)
         {
-            bool hasSolution;
-            UninformedSearch uninformedSearch;
-
-            uninformedSearch = new UninformedSearch();
-
-            hasSolution = uninformedSearch.SearchIDS(initialState);
-
-            if (hasSolution)
-                System.Console.WriteLine(string.Format("La solución al problema encontrada por IDS es:\n{0}", uninformedSearch.GetSolutionPath()));
-            else
-                System.Console.WriteLine("IDS no encontró solución al problema.");
-            System.Console.ReadLine();
-
-            uninformedSearch = null;
+            UninformedSearch search = new UninformedSearch();
+            ShowResult("IDS", search.SearchIDS(initialState), search.GetSolutionPath());
         }
 
         static void SolveGreedy(State initialState)
         {
-            bool hasSolution;
-            InformedSearch informedSearch;
-
-            informedSearch = new InformedSearch();
-
-            hasSolution = informedSearch.SearchGreedy(initialState);
-
-            if (hasSolution)
-                System.Console.WriteLine(string.Format("La solución al problema encontrada por Greedy es:\n{0}", informedSearch.GetSolutionPath()));
-            else
-                System.Console.WriteLine("Greedy no encontró solución al problema.");
-            System.Console.ReadLine();
-
-            informedSearch = null;
+            InformedSearch search = new InformedSearch();
+            ShowResult("Greedy", search.SearchGreedy(initialState), search.GetSolutionPath());
         }
         #endregion
+
+        static State BuildPuzzle8(string board)
+        {
+            // Default board is the sample one; "--board 123456078" overrides it (0 = blank).
+            if (board.Length != 9 || board.Any(c => !char.IsDigit(c)) || board.Distinct().Count() != 9)
+                throw new ArgumentException("--board needs the digits 0-8 exactly once, e.g. 123456078");
+            int[,] matrix = new int[3, 3];
+            for (int i = 0; i < 9; i++)
+                matrix[i / 3, i % 3] = board[i] - '0';
+            return new Puzzle8State(matrix);
+        }
+
+        const string DefaultPuzzle8Board = "123456078";
+        const string DefaultSudokuBoard = "001078050782009400500100000008700060307801204010003500000002005005600942040380600";
+
+        static State BuildSudoku(string board)
+        {
+            // 81 digits row by row, 0 = empty cell.
+            if (board.Length != 81 || board.Any(c => !char.IsDigit(c)))
+                throw new ArgumentException("--board needs 81 digits (0 = empty), row by row");
+            int[,,,] matrixSudoku = new int[3, 3, 3, 3];
+            for (int i = 0; i < 81; i++)
+            {
+                int row = i / 9, col = i % 9;
+                matrixSudoku[row / 3, col / 3, row % 3, col % 3] = board[i] - '0';
+            }
+            return new SudokuState(matrixSudoku);
+        }
+
+        static void PrintUsage()
+        {
+            System.Console.WriteLine("Usage: Search.Console --problem <water|boat|puzzle8|sudoku> --algorithm <bfs|dfs|dls|ids|greedy> [--depth N] [--board <digits>]");
+            System.Console.WriteLine("  --depth  depth limit for dls (default 10)");
+            System.Console.WriteLine("  --board  start board for puzzle8 (9 digits) or sudoku (81 digits), row by row, 0 = empty");
+        }
 
         static void Main(string[] args)
         {
             System.Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            #region Solve Water Problem
-            WaterState initialWaterState;
-            initialWaterState = new WaterState(0, 0);
-            //SolveBFS(initialWaterState);
-            //SolveDFS(initialWaterState);
-            //SolveDLS(initialWaterState, 10);
-            //SolveIDS(initialWaterState);
-            initialWaterState = null;
-            #endregion
+            Dictionary<string, string> options = new Dictionary<string, string>();
+            for (int i = 0; i + 1 < args.Length; i += 2)
+                options[args[i].TrimStart('-').ToLowerInvariant()] = args[i + 1];
 
-            #region Solve Boat Problem
-/*
-A farmer wants to cross a river and take with him a wolf, a goat, and a cabbage. 
-There is a boat that can fit himself plus either the wolf, the goat, or the cabbage. 
-If the wolf and the goat are alone on one shore, the wolf will eat the goat. If the goat and the cabbage are alone on the shore, the goat will eat the cabbage.
-How can the farmer bring the wolf, the goat, and the cabbage across the river?
-*/
-            BoatState initialBoatState;
-            initialBoatState = new BoatState(false, false, false, false);
-            //SolveBFS(initialBoatState);
-            //SolveDFS(initialBoatState);
-            //SolveDLS(initialBoatState, 10);
-            //SolveIDS(initialBoatState);
-            initialBoatState = null;
-            #endregion
+            if (!options.ContainsKey("problem") || !options.ContainsKey("algorithm"))
+            {
+                PrintUsage();
+                return;
+            }
 
-            #region Solve Puzzle8 Problem
-            #region One Puzzle8 matrix Definition
-            int[,] matrixPuzzle8;
-            matrixPuzzle8 = new int[3, 3];
-            matrixPuzzle8[0, 0] = 1;
-            matrixPuzzle8[0, 1] = 2;
-            matrixPuzzle8[0, 2] = 3;
-            matrixPuzzle8[1, 0] = 4;
-            matrixPuzzle8[1, 1] = 5;
-            matrixPuzzle8[1, 2] = 6;
-            matrixPuzzle8[2, 0] = 0;
-            matrixPuzzle8[2, 1] = 7;
-            matrixPuzzle8[2, 2] = 8;
-            #endregion
-            Puzzle8State initialPuzzle8State;
-            initialPuzzle8State = new Puzzle8State(matrixPuzzle8);
-            //SolveBFS(initialPuzzle8State);
-            //SolveDFS(initialPuzzle8State);
-            //SolveDLS(initialPuzzle8State, 10);
-            //SolveIDS(initialPuzzle8State);
-            //SolveGreedy(initialPuzzle8State);
-            initialPuzzle8State = null;
-            #endregion
+            State initialState;
+            switch (options["problem"].ToLowerInvariant())
+            {
+                case "water": initialState = new WaterState(0, 0); break;
+                case "boat": initialState = new BoatState(false, false, false, false); break;
+                case "puzzle8": initialState = BuildPuzzle8(options.GetValueOrDefault("board", DefaultPuzzle8Board)); break;
+                case "sudoku": initialState = BuildSudoku(options.GetValueOrDefault("board", DefaultSudokuBoard)); break;
+                default: PrintUsage(); return;
+            }
 
-            #region Solve Sudoku Problem
-            #region One Sudoku matrix Definition
-            int[, , ,] matrixSudoku;
-            matrixSudoku = new int[3, 3, 3, 3];
-            matrixSudoku[0,0,0,2] = 1;
-            matrixSudoku[0,0,1,0] = 7;
-            matrixSudoku[0,0,1,1] = 8;
-            matrixSudoku[0,0,1,2] = 2;
-            matrixSudoku[0,0,2,0] = 5;
-            matrixSudoku[0,1,0,1] = 7;
-            matrixSudoku[0,1,0,2] = 8;
-            matrixSudoku[0,1,1,2] = 9;
-            matrixSudoku[0,1,2,0] = 1;
-            matrixSudoku[0,2,0,1] = 5;
-            matrixSudoku[0,2,1,0] = 4;
-            matrixSudoku[1,0,0,2] = 8;
-            matrixSudoku[1,0,1,0] = 3;
-            matrixSudoku[1,0,1,2] = 7;
-            matrixSudoku[1,0,2,1] = 1;
-            matrixSudoku[1,1,0,0] = 7;
-            matrixSudoku[1,1,1,0] = 8;
-            matrixSudoku[1,1,1,2] = 1;
-            matrixSudoku[1,1,2,2] = 3;
-            matrixSudoku[1,2,0,1] = 6;
-            matrixSudoku[1,2,1,0] = 2;
-            matrixSudoku[1,2,1,2] = 4;
-            matrixSudoku[1,2,2,0] = 5;
-            matrixSudoku[2,0,1,2] = 5;
-            matrixSudoku[2,0,2,1] = 4;
-            matrixSudoku[2,1,0,2] = 2;
-            matrixSudoku[2,1,1,0] = 6;
-            matrixSudoku[2,1,2,0] = 3;
-            matrixSudoku[2,1,2,1] = 8;
-            matrixSudoku[2,2,0,2] = 5;
-            matrixSudoku[2,2,1,0] = 9;
-            matrixSudoku[2,2,1,1] = 4;
-            matrixSudoku[2,2,1,2] = 2;
-            matrixSudoku[2,2,2,0] = 6;
-            #endregion
-
-            SudokuState initialSudokuState;
-            initialSudokuState = new SudokuState(matrixSudoku, "");
-            //SolveBFS(initialWaterState);
-            //SolveDFS(initialWaterState);
-            //SolveDLS(initialWaterState, 10);
-            //SolveIDS(initialSudokuState);
-            initialSudokuState = null;
-            #endregion
+            switch (options["algorithm"].ToLowerInvariant())
+            {
+                case "bfs": SolveBFS(initialState); break;
+                case "dfs": SolveDFS(initialState); break;
+                case "dls": SolveDLS(initialState, int.Parse(options.GetValueOrDefault("depth", "10"))); break;
+                case "ids": SolveIDS(initialState); break;
+                case "greedy": SolveGreedy(initialState); break;
+                default: PrintUsage(); break;
+            }
         }
     }
 }
