@@ -1,0 +1,22 @@
+
+# C# / .NET
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+
+# Node.js / TypeScript
+**/node_modules/
+**/dist/
+**/coverage/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Editors and operating systems
+.vscode/
+.DS_Store
+Thumbs.db
